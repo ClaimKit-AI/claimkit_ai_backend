@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClaimKit Voice Companion | Doctor Notes AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-container">
+            <div class="tutorial-header">
+                <h3>Welcome to ClaimKit Voice Companion</h3>
+                <button id="skipTutorial" class="skip-tutorial-btn">Skip Tutorial</button>
+            </div>
+            <div class="tutorial-content">
+                <div class="tutorial-step active" data-step="1">
+                    <div class="tutorial-image">
+                        <img src="img/step1.png" alt="Enter API Credentials">
+                    </div>
+                    <div class="tutorial-text">
+                        <h4>Step 1: Enter API Credentials</h4>
+                        <p>Start by entering your ClaimKit API key and Hospital ID. These credentials are required to use the service.</p>
+                    </div>
+                </div>
+                <div class="tutorial-step" data-step="2">
+                    <div class="tutorial-image">
+                        <img src="img/step2.png" alt="Fill Patient Information">
+                    </div>
+                    <div class="tutorial-text">
+                        <h4>Step 2: Fill Patient Information</h4>
+                        <p>Enter the patient's age, gender, and visit type to ensure accurate documentation.</p>
+                    </div>
+                </div>
+                <div class="tutorial-step" data-step="3">
+                    <div class="tutorial-image">
+                        <img src="img/step3.png" alt="Record Conversation">
+                    </div>
+                    <div class="tutorial-text">
+                        <h4>Step 3: Record Conversation</h4>
+                        <p>Press the microphone button and speak clearly. The AI will transcribe your conversation in real-time.</p>
+                    </div>
+                </div>
+                <div class="tutorial-step" data-step="4">
+                    <div class="tutorial-image">
+                        <img src="img/step4.png" alt="Review Transcription">
+                    </div>
+                    <div class="tutorial-text">
+                        <h4>Step 4: Review Transcription</h4>
+                        <p>Edit the transcription if needed before generating the enhanced documentation.</p>
+                    </div>
+                </div>
+                <div class="tutorial-step" data-step="5">
+                    <div class="tutorial-image">
+                        <img src="img/step5.png" alt="View Results">
+                    </div>
+                    <div class="tutorial-text">
+                        <h4>Step 5: View Enhanced Results</h4>
+                        <p>Explore the AI-enhanced medical documentation with proper medical codes and structure.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="tutorial-navigation">
+                <button id="prevTutorial" class="tutorial-nav-btn" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+                <div class="tutorial-dots">
+                    <span class="tutorial-dot active" data-step="1"></span>
+                    <span class="tutorial-dot" data-step="2"></span>
+                    <span class="tutorial-dot" data-step="3"></span>
+                    <span class="tutorial-dot" data-step="4"></span>
+                    <span class="tutorial-dot" data-step="5"></span>
+                </div>
+                <button id="nextTutorial" class="tutorial-nav-btn">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+
+            <div class="logo"><img src="img/logo.png" alt="ClaimKit Logo">
+                <h1>Voice Companion</h1>
+            </div>
+            <div class="status" id="status">Ready</div>
+        </header>
+
+        <!-- Stepper Progress -->
+        <div class="stepper-progress">
+            <div class="stepper-progress-bar">
+                <div class="stepper-step active" data-step="1">
+                    <div class="step-indicator">1</div>
+                    <div class="step-label">Credentials</div>
+                </div>
+                <div class="stepper-connector"></div>
+                <div class="stepper-step" data-step="2">
+                    <div class="step-indicator">2</div>
+                    <div class="step-label">Patient Info</div>
+                </div>
+                <div class="stepper-connector"></div>
+                <div class="stepper-step" data-step="3">
+                    <div class="step-indicator">3</div>
+                    <div class="step-label">Record</div>
+                </div>
+                <div class="stepper-connector"></div>
+                <div class="stepper-step" data-step="4">
+                    <div class="step-indicator">4</div>
+                    <div class="step-label">Transcription</div>
+                </div>
+                <div class="stepper-connector"></div>
+                <div class="stepper-step" data-step="5">
+                    <div class="step-indicator">5</div>
+                    <div class="step-label">Results</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content area with steps -->
+        <div class="stepper-content">
+            <!-- Step 1: API Credentials -->
+            <div class="stepper-pane active" id="step1">
+                <div class="instructions-panel">
+                    <h3><i class="fas fa-info-circle"></i> Step 1: API Credentials</h3>
+                    <p>Enter your ClaimKit API credentials to begin. These are required to access the AI services.</p>
+                </div>
+
+                <div class="credentials-panel main-credentials">
+                    <h4>API Credentials</h4>
+                    <div class="credentials-form">
+                        <div class="form-group">
+                            <label for="apiKeyInput">API Key</label>
+                            <div class="input-with-button">
+                                <input type="password" id="apiKeyInput" placeholder="Enter your ClaimKit API key">
+                                <button class="toggle-password" id="toggleApiKey" type="button">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hospitalIdInput">Hospital ID</label>
+                            <input type="number" id="hospitalIdInput" placeholder="Enter your hospital ID">
+                        </div>
+                        <button id="saveCredentialsBtn" class="control-button primary">
+                            <i class="fas fa-save"></i> Save Credentials
+                        </button>
+                        <div id="credentialsStatus" class="credentials-status"></div>
+                        <div class="api-credentials-active" style="display: none;">
+                            <i class="fas fa-check-circle"></i> Using API key for Hospital ID: <span id="activeHospitalId"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stepper-navigation">
+                    <button class="stepper-button next" id="nextToStep2" disabled>Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 2: Patient Information -->
+            <div class="stepper-pane" id="step2">
+                <div class="instructions-panel">
+                    <h3><i class="fas fa-info-circle"></i> Step 2: Patient Information</h3>
+                    <p>Fill in the patient details to ensure accurate medical documentation.</p>
+                </div>
+
+                <!-- Patient Templates Selection -->
+                <div class="patient-templates-container">
+                    <h3><i class="fas fa-users"></i> Quick Templates</h3>
+                    <div class="templates-tray">
+                        <div class="template-card" data-age="45" data-gender="male" data-visit="initial consultation">
+                            <div class="template-icon"><i class="fas fa-male"></i></div>
+                            <div class="template-info">
+                                <h4>Adult Male</h4>
+                                <p>45 years, Initial Visit</p>
+                            </div>
+                        </div>
+                        <div class="template-card" data-age="42" data-gender="female" data-visit="initial consultation">
+                            <div class="template-icon"><i class="fas fa-female"></i></div>
+                            <div class="template-info">
+                                <h4>Adult Female</h4>
+                                <p>42 years, Initial Visit</p>
+                            </div>
+                        </div>
+                        <div class="template-card" data-age="68" data-gender="male" data-visit="follow-up">
+                            <div class="template-icon"><i class="fas fa-male"></i></div>
+                            <div class="template-info">
+                                <h4>Senior Male</h4>
+                                <p>68 years, Follow-up</p>
+                            </div>
+                        </div>
+                        <div class="template-card" data-age="65" data-gender="female" data-visit="follow-up">
+                            <div class="template-icon"><i class="fas fa-female"></i></div>
+                            <div class="template-info">
+                                <h4>Senior Female</h4>
+                                <p>65 years, Follow-up</p>
+                            </div>
+                        </div>
+                        <div class="template-card" data-age="12" data-gender="male" data-visit="routine checkup">
+                            <div class="template-icon"><i class="fas fa-child"></i></div>
+                            <div class="template-info">
+                                <h4>Child Male</h4>
+                                <p>12 years, Checkup</p>
+                            </div>
+                        </div>
+                        <div class="template-card" data-age="10" data-gender="female" data-visit="routine checkup">
+                            <div class="template-icon"><i class="fas fa-child"></i></div>
+                            <div class="template-info">
+                                <h4>Child Female</h4>
+                                <p>10 years, Checkup</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="patient-info-section" id="patientInfoSection">
+                    <h2>Patient Information</h2>
+                    <div class="form-group">
+                        <label for="patientAge">Age</label>
+                        <input type="number" id="patientAge" name="patientAge" min="0" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label for="patientGender">Gender</label>
+                        <select id="patientGender" name="patientGender">
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="visitType">Visit Type</label>
+                        <select id="visitType" name="visitType">
+                            <option value="">Select visit type</option>
+                            <option value="initial consultation">Initial Consultation</option>
+                            <option value="follow-up">Follow-up</option>
+                            <option value="emergency">Emergency</option>
+                            <option value="routine checkup">Routine Checkup</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="insurancePolicy">Insurance Policy (Optional)</label>
+                        <input type="text" id="insurancePolicy" name="insurancePolicy">
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewFeedback">Review Feedback (Optional)</label>
+                        <textarea id="reviewFeedback" name="reviewFeedback" rows="3"></textarea>
+                    </div>
+                </section>
+
+                <div class="stepper-navigation">
+                    <button class="stepper-button back" id="backToStep1"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="stepper-button next" id="nextToStep3">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 3: Voice Recording -->
+            <div class="stepper-pane" id="step3">
+                <div class="instructions-panel">
+                    <h3><i class="fas fa-info-circle"></i> Step 3: Record Conversation</h3>
+                    <p>Click the microphone button and speak clearly. The AI will transcribe your conversation.</p>
+                    <div class="tips">
+                        <p><strong>Tips:</strong> Speak clearly and include relevant clinical details. The AI is trained to recognize medical terminology.</p>
+                        <p><strong>Sample Dictation:</strong> "Patient is a 45-year-old male presenting with abdominal pain for 2 weeks. Pain is localized to right upper quadrant and gets worse after meals..."</p>
+                    </div>
+                </div>
+
+                <section class="voice-section">
+                    <div class="voice-container">
+                        <div class="voice-animation" id="voiceAnimation">
+                            <div class="circle"></div>
+                            <div class="waves">
+                                <div class="wave wave1"></div>
+                                <div class="wave wave2"></div>
+                                <div class="wave wave3"></div>
+                            </div>
+                        </div>
+                        <button id="recordButton" class="record-button">
+                            <i class="fas fa-microphone"></i>
+                            <span>Press to Talk</span>
+                        </button>
+                    </div>
+                    <div class="controls">
+                        <button id="resetButton" class="control-button" disabled>
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </section>
+
+                <div class="stepper-navigation">
+                    <button class="stepper-button back" id="backToStep2"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="stepper-button next" id="nextToStep4" disabled>Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 4: Transcription -->
+            <div class="stepper-pane" id="step4">
+                <div class="instructions-panel">
+                    <h3><i class="fas fa-info-circle"></i> Step 4: Review Transcription</h3>
+                    <p>Review and edit the transcribed text if needed before proceeding.</p>
+                </div>
+
+                <section class="transcription-section" id="transcriptionSection">
+                    <h2>Transcription</h2>
+                    <div class="transcription-controls">
+                        <span class="status">Status: <span id="transcriptionStatus">Waiting for recording</span></span>
+                        <button id="editTranscriptionBtn" class="small-button" disabled>
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+                    <div class="transcription-area">
+                        <div id="transcriptionDisplay" class="transcription-display">
+                            <p class="placeholder">Your transcribed notes will appear here...</p>
+                        </div>
+                        <div id="transcriptionEdit" class="transcription-edit hidden">
+                            <textarea id="transcriptionText"></textarea>
+                            <div class="edit-controls">
+                                <button id="cancelEdit" class="small-button">Cancel</button>
+                                <button id="saveEdit" class="small-button primary">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="stepper-navigation">
+                    <button class="stepper-button back" id="backToStep3"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="stepper-button next primary" id="submitButton" disabled>
+                        <i class="fas fa-paper-plane"></i> Submit
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 5: Results -->
+            <div class="stepper-pane" id="step5">
+                <section class="results-section" id="resultsSection">
+                    <h2>Enhanced Results</h2>
+                    <div class="tabs">
+                        <!-- Hide other tabs and show only ClaimKit tab -->
+                        <button class="tab-button active" data-tab="claimkit">ClaimKit</button>
+                    </div>
+                    <div class="tab-content">
+                        <!-- All other tab panes are hidden by default now -->
+                        <div class="tab-pane hidden" id="formatted">
+                            <div class="medical-note" id="formattedNote"></div>
+                            <div class="documentation-actions">
+                                <button id="generateDocumentationBtn" class="button primary">
+                                    <i class="fas tab-button"></i> Generate Clinical Documentation
+                                </button>
+                            </div>
+                        </div>
+                        <div class="tab-pane hidden" id="structured">
+                            <div class="json-viewer" id="structuredData"></div>
+                        </div>
+                        <div class="tab-pane hidden" id="enhancements">
+                            <div class="enhancements-list">
+                                <div class="enhancement-group">
+                                    <h3><i class="fas fa-exclamation-triangle"></i> Inconsistencies Found</h3>
+                                    <ul id="inconsistenciesList"></ul>
+                                </div>
+                                <div class="enhancement-group">
+                                    <h3><i class="fas fa-check-circle"></i> Gaps Resolved</h3>
+                                    <ul id="gapsResolvedList"></ul>
+                                </div>
+                                <div class="enhancement-group">
+                                    <h3><i class="fas fa-star"></i> Enhancements Implemented</h3>
+                                    <ul id="enhancementsImplementedList"></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane hidden" id="emr">
+                            <div class="emr-interface">
+                                <div class="emr-header">
+                                    <h3>Clinical Documentation</h3>
+                                    <div class="emr-patient-info">
+                                        <span id="emrPatientAge"></span> |
+                                        <span id="emrPatientGender"></span> |
+                                        <span id="emrVisitType"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Chief Complaint</h4>
+                                    <textarea id="emrChiefComplaint" class="emr-textarea" placeholder="Enter chief complaint"></textarea>
+                                </div>
+
+                                <div class="emr-section">
+                                    <h4>Secondary Complaints</h4>
+                                    <div class="emr-form-field">
+                                        <textarea id="emrSecondaryComplaints" class="emr-textarea" placeholder="Enter secondary complaints (separated by lines)"></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>History of Present Illness</h4>
+                                    <textarea id="emrHPI" class="emr-textarea" rows="4" placeholder="Enter history of present illness"></textarea>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Past Medical History</h4>
+                                    <div class="emr-subsection">
+                                        <h5>Conditions</h5>
+                                        <div class="emr-form-field">
+                                            <textarea id="emrConditions" class="emr-textarea" placeholder="Enter medical conditions (one per line)"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="emr-subsection">
+                                        <h5>Surgeries</h5>
+                                        <div class="emr-form-field">
+                                            <textarea id="emrSurgeries" class="emr-textarea" placeholder="Enter past surgeries (one per line)"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="emr-subsection">
+                                        <h5>Allergies</h5>
+                                        <div class="emr-form-field">
+                                            <textarea id="emrAllergies" class="emr-textarea" placeholder="Enter allergies (one per line)"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Vital Signs</h4>
+                                    <div class="vitals-form-grid">
+                                        <div class="vital-form-item">
+                                            <label for="emrBP">Blood Pressure</label>
+                                            <input type="text" id="emrBP" placeholder="e.g. 120/80">
+                                        </div>
+                                        <div class="vital-form-item">
+                                            <label for="emrHR">Heart Rate</label>
+                                            <input type="text" id="emrHR" placeholder="e.g. 72 bpm">
+                                        </div>
+                                        <div class="vital-form-item">
+                                            <label for="emrRR">Respiratory Rate</label>
+                                            <input type="text" id="emrRR" placeholder="e.g. 16">
+                                        </div>
+                                        <div class="vital-form-item">
+                                            <label for="emrTemp">Temperature</label>
+                                            <input type="text" id="emrTemp" placeholder="e.g. 37.0°C">
+                                        </div>
+                                        <div class="vital-form-item">
+                                            <label for="emrO2">O2 Saturation</label>
+                                            <input type="text" id="emrO2" placeholder="e.g. 98%">
+                                        </div>
+                                        <div class="vital-form-item">
+                                            <label for="emrHeight">Height</label>
+                                            <input type="text" id="emrHeight" placeholder="e.g. 175 cm">
+                                        </div>
+                                        <div class="vital-form-item">
+                                            <label for="emrWeight">Weight</label>
+                                            <input type="text" id="emrWeight" placeholder="e.g. 70 kg">
+                                        </div>
+                                        <div class="vital-form-item">
+                                            <label for="emrBMI">BMI</label>
+                                            <input type="text" id="emrBMI" placeholder="e.g. 22.9">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Assessments</h4>
+                                    <div id="emrAssessmentsContainer">
+                                        <div class="assessment-form-item">
+                                            <div class="assessment-form-row">
+                                                <input type="text" class="diagnosis-input" placeholder="Diagnosis">
+                                                <input type="text" class="icd-input" placeholder="ICD Code">
+                                            </div>
+                                            <textarea class="evidence-input" placeholder="Clinical evidence"></textarea>
+                                        </div>
+                                    </div>
+                                    <button id="addAssessmentBtn" class="add-item-btn">+ Add Assessment</button>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Medications</h4>
+                                    <div class="emr-two-columns">
+                                        <div class="emr-column">
+                                            <h5>Prescribed Medications</h5>
+                                            <div id="emrPrescribedMedsContainer">
+                                                <div class="medication-form-item">
+                                                    <input type="text" class="med-name" placeholder="Medication name">
+                                                    <div class="med-details">
+                                                        <input type="text" class="med-dosage" placeholder="Dosage">
+                                                        <input type="text" class="med-frequency" placeholder="Frequency">
+                                                        <input type="text" class="med-duration" placeholder="Duration">
+                                                    </div>
+                                                    <textarea class="med-instructions" placeholder="Instructions"></textarea>
+                                                </div>
+                                            </div>
+                                            <button id="addMedicationBtn" class="add-item-btn">+ Add Medication</button>
+                                        </div>
+                                        <div class="emr-column">
+                                            <h5>Suggested Medications</h5>
+                                            <div id="emrSuggestedMeds" class="emr-selectable-list">
+                                                <!-- Suggested medications will be populated here with checkboxes -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Treatment Plan</h4>
+                                    <div class="emr-two-columns">
+                                        <div class="emr-column">
+                                            <h5>Prescribed Treatments</h5>
+                                            <div id="emrPrescribedTreatmentsContainer">
+                                                <div class="treatment-form-item">
+                                                    <input type="text" class="treatment-name" placeholder="Treatment">
+                                                    <textarea class="treatment-instructions" placeholder="Instructions"></textarea>
+                                                    <input type="text" class="treatment-duration" placeholder="Duration">
+                                                </div>
+                                            </div>
+                                            <button id="addTreatmentBtn" class="add-item-btn">+ Add Treatment</button>
+                                        </div>
+                                        <div class="emr-column">
+                                            <h5>Suggested Treatments</h5>
+                                            <div id="emrSuggestedTreatments" class="emr-selectable-list">
+                                                <!-- Suggested treatments will be populated here with checkboxes -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Procedures</h4>
+                                    <div class="emr-two-columns">
+                                        <div class="emr-column">
+                                            <h5>Performed Procedures</h5>
+                                            <div id="emrPerformedProceduresContainer">
+                                                <div class="procedure-form-item">
+                                                    <div class="procedure-form-row">
+                                                        <input type="text" class="procedure-name" placeholder="Procedure name">
+                                                        <input type="text" class="cpt-code" placeholder="CPT Code">
+                                                    </div>
+                                                    <textarea class="procedure-notes" placeholder="Notes"></textarea>
+                                                </div>
+                                            </div>
+                                            <button id="addProcedureBtn" class="add-item-btn">+ Add Procedure</button>
+                                        </div>
+                                        <div class="emr-column">
+                                            <h5>Suggested Procedures</h5>
+                                            <div id="emrSuggestedProcedures" class="emr-selectable-list">
+                                                <!-- Suggested procedures will be populated here with checkboxes -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-section">
+                                    <h4>Follow-Up</h4>
+                                    <div class="followup-form">
+                                        <div class="form-group">
+                                            <label for="emrFollowUpTiming">Timing</label>
+                                            <input type="text" id="emrFollowUpTiming" placeholder="e.g. 2 weeks">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="emrFollowUpInstructions">Instructions</label>
+                                            <textarea id="emrFollowUpInstructions" placeholder="Follow-up instructions"></textarea>
+                                        </div>
+                                        <div class="emr-subsection">
+                                            <h5>Referrals</h5>
+                                            <div id="emrReferralsContainer">
+                                                <div class="referral-form-item">
+                                                    <input type="text" class="referral-speciality" placeholder="Speciality">
+                                                    <input type="text" class="referral-reason" placeholder="Reason">
+                                                </div>
+                                            </div>
+                                            <button id="addReferralBtn" class="add-item-btn">+ Add Referral</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="emr-actions">
+                                    <button id="saveDocumentationBtn" class="button primary">
+                                        <i class="fas fa-save"></i> Save Documentation
+                                    </button>
+                                    <button id="exportDocumentationBtn" class="button">
+                                        <i class="fas fa-file-export"></i> Export Documentation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane active" id="claimkit">
+                            <div class="claimkit-interface">
+                                <div class="claimkit-header">
+                                    <h3>ClaimKit Integration</h3>
+                                    <p>Use the ClaimKit AI Service to enhance your clinical documentation workflow.</p>
+                                </div>
+                                
+                                <div class="claimkit-actions">
+                                    <button id="enhanceNotesBtn" class="button">
+                                        <i class="fas fa-file-medical-alt"></i> Enhance Doctor Notes
+                                    </button>
+                                    <button id="reviewDocumentationBtn" class="button">
+                                        <i class="fas fa-clipboard-check"></i> Review Documentation
+                                    </button>
+                                </div>
+                                
+                                <div class="claimkit-results-container">
+                                    <div class="claimkit-tabs">
+                                        <button class="claimkit-tab-button active" data-tab="enhanced-notes">Enhanced Notes</button>
+                                        <button class="claimkit-tab-button" data-tab="review-results">Review Results</button>
+                                    </div>
+                                    
+                                    <div class="claimkit-tab-content">
+                                        <div class="claimkit-tab-pane active" id="enhanced-notes">
+                                            <div class="result-box">
+                                                <h4>Enhanced Doctor Notes</h4>
+                                                <div id="enhancedNotesDisplay" class="result-content">
+                                                    <p class="placeholder">Enhanced notes will appear here after processing...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="claimkit-tab-pane" id="review-results">
+                                            <div class="result-box">
+                                                <h4>Documentation Review</h4>
+                                                <div id="reviewResultsDisplay" class="result-content">
+                                                    <p class="placeholder">Review results will appear here after processing...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="stepper-navigation">
+                    <button class="stepper-button back" id="backToStep4"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="stepper-button restart" id="restartProcess"><i class="fas fa-redo"></i> Start New Session</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loader"></div>
+            <p id="loadingStatus">Processing...</p>
+        </div>
+
+        <!-- Claims Dashboard Dialog -->
+        <div class="modal-overlay" id="claimsDashboardModal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3><i class="fas fa-chart-line"></i> Enhanced Notes Complete</h3>
+                    <button class="modal-close-btn" id="closeClaimsModal">×</button>
+                </div>
+                <div class="modal-content">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h4>Your notes have been successfully enhanced!</h4>
+                    <p>The AI has analyzed and improved your medical documentation with proper formatting and medical codes.</p>
+                    <div class="claims-info">
+                        <i class="fas fa-info-circle"></i>
+                        <p>To generate an insurance claim based on this documentation, please log in to your <strong>ClaimKit Dashboard</strong> where you can access advanced claim generation features.</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="modal-btn secondary" id="stayHereBtn">Continue Editing</button>
+                        <button class="modal-btn primary" id="gotoDashboardBtn">Go to Dashboard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2023 ClaimKit Voice Companion | Powered by OpenAI Whisper and GPT-4</p>
+            <button id="showTutorial" class="show-tutorial-btn"><i class="fas fa-question-circle"></i> Show Tutorial</button>
+        </footer>
+    </div>
+    
+    <script src="js/script.js"></script>
+    <script src="js/stepper.js"></script>
+    <script src="js/tutorial.js"></script>
+    <script src="js/emr-functions.js"></script>
+    <script src="js/claimkit-api.js"></script>
+    <script src="js/claimkit-integration.js"></script>
+</body>
+</html> 
