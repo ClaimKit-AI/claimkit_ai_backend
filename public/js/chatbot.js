@@ -711,52 +711,79 @@ function initChatbot() {
         if (typeof data.data.report === 'object') {
           const report = data.data.report;
           
-          // Build formatted report content
-          reportContent = `
-            <p><strong>Patient:</strong> ${report.patientInfo?.name || 'Not specified'}</p>
-            <p><strong>Age:</strong> ${report.patientInfo?.age || 'Not specified'}</p>
-            <p><strong>Gender:</strong> ${report.patientInfo?.gender || 'Not specified'}</p>
+          // If we have originalContent for non-English reports, use it
+          if (report.language !== 'en' && report.originalContent) {
+            // For non-English reports, display the original content with minimal formatting
+            const formattedContent = report.originalContent
+              .replace(/\n\s*#+\s*([^\n]+)/g, '<h4>$1</h4>')  // Convert headings
+              .replace(/\n\s*-\s+([^\n]+)/g, '<li>$1</li>')   // Convert list items
+              .replace(/\n\s*\*\s+([^\n]+)/g, '<li>$1</li>')  // Convert list items (star)
+              .replace(/\n\s*\d+\.\s+([^\n]+)/g, '<li>$1</li>') // Convert numbered list items
+              .replace(/\n\n/g, '</p><p>')                     // Convert paragraphs
+              .replace(/<li>/g, '<ul><li>')                    // Start lists
+              .replace(/<\/li>/g, '</li></ul>')                // End lists
+              .replace(/<\/ul><ul>/g, '');                     // Clean up adjacent lists
             
-            <h4>Medical History</h4>
-            <ul>
-              ${Array.isArray(report.medicalHistory) ? 
-                report.medicalHistory.map(item => `<li>${item}</li>`).join('') : 
-                '<li>No medical history available</li>'}
-            </ul>
+            reportContent = `<div dir="${language === 'ar' ? 'rtl' : 'ltr'}" class="original-report">${formattedContent}</div>`;
+          } else {
+            // Build formatted report content (the structured way for English)
+            reportContent = `
+              <p><strong>Patient:</strong> ${report.patientInfo?.name || 'Not specified'}</p>
+              <p><strong>Age:</strong> ${report.patientInfo?.age || 'Not specified'}</p>
+              <p><strong>Gender:</strong> ${report.patientInfo?.gender || 'Not specified'}</p>
+              
+              <h4>Medical History</h4>
+              <ul>
+                ${Array.isArray(report.medicalHistory) ? 
+                  report.medicalHistory.map(item => `<li>${item}</li>`).join('') : 
+                  '<li>No medical history available</li>'}
+              </ul>
+              
+              <h4>Current Conditions</h4>
+              <ul>
+                ${Array.isArray(report.currentConditions) ? 
+                  report.currentConditions.map(item => `<li>${item}</li>`).join('') : 
+                  '<li>No current conditions listed</li>'}
+              </ul>
+              
+              <h4>Medications</h4>
+              <ul>
+                ${Array.isArray(report.medications) ? 
+                  report.medications.map(item => `<li>${item}</li>`).join('') : 
+                  '<li>No medications listed</li>'}
+              </ul>
+              
+              <h4>Allergies</h4>
+              <ul>
+                ${Array.isArray(report.allergies) ? 
+                  report.allergies.map(item => `<li>${item}</li>`).join('') : 
+                  '<li>No allergies listed</li>'}
+              </ul>
+              
+              <h4>Travel Recommendations</h4>
+              <ul>
+                ${Array.isArray(report.travelRecommendations) ? 
+                  report.travelRecommendations.map(item => `<li>${item}</li>`).join('') : 
+                  '<li>No travel recommendations available</li>'}
+              </ul>
+              
+              <h4>Medical Clearance</h4>
+              <p>${report.medicalClearance || 'No medical clearance information available'}</p>
+              
+              ${report.disclaimer ? `<p class="disclaimer">${report.disclaimer}</p>` : ''}
+            `;
             
-            <h4>Current Conditions</h4>
-            <ul>
-              ${Array.isArray(report.currentConditions) ? 
-                report.currentConditions.map(item => `<li>${item}</li>`).join('') : 
-                '<li>No current conditions listed</li>'}
-            </ul>
-            
-            <h4>Medications</h4>
-            <ul>
-              ${Array.isArray(report.medications) ? 
-                report.medications.map(item => `<li>${item}</li>`).join('') : 
-                '<li>No medications listed</li>'}
-            </ul>
-            
-            <h4>Allergies</h4>
-            <ul>
-              ${Array.isArray(report.allergies) ? 
-                report.allergies.map(item => `<li>${item}</li>`).join('') : 
-                '<li>No allergies listed</li>'}
-            </ul>
-            
-            <h4>Travel Recommendations</h4>
-            <ul>
-              ${Array.isArray(report.travelRecommendations) ? 
-                report.travelRecommendations.map(item => `<li>${item}</li>`).join('') : 
-                '<li>No travel recommendations available</li>'}
-            </ul>
-            
-            <h4>Medical Clearance</h4>
-            <p>${report.medicalClearance || 'No medical clearance information available'}</p>
-            
-            ${report.disclaimer ? `<p class="disclaimer">${report.disclaimer}</p>` : ''}
-          `;
+            // Add language translations if available
+            if (Object.keys(report.languageTranslation).length > 0) {
+              reportContent += `
+                <h4>Translations</h4>
+                <ul class="translations-list">
+                  ${Object.entries(report.languageTranslation).map(([phrase, translation]) => 
+                    `<li><strong>${phrase}:</strong> ${translation}</li>`).join('')}
+                </ul>
+              `;
+            }
+          }
         } else if (typeof data.data.report === 'string') {
           // If it's already a string, use it directly
           reportContent = data.data.report;
@@ -768,11 +795,14 @@ function initChatbot() {
         window.reportData = data.data.report;
         console.log('Report data stored for PDF:', window.reportData);
         
+        // Get language direction
+        const isRTL = language === 'ar' ? 'rtl' : 'ltr';
+        
         // Display the generated report
         const reportHtml = `
-          <div class="travel-report">
+          <div class="travel-report" dir="${isRTL}">
             <h3>Travel Medical Report</h3>
-            <div class="report-content">${reportContent}</div>
+            <div class="report-content" lang="${language}">${reportContent}</div>
             
             <div class="report-actions">
               <button class="chatbot-btn" data-action="download-pdf">
@@ -818,6 +848,7 @@ function initChatbot() {
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 12px;
+            text-align: ${isRTL === 'rtl' ? 'right' : 'left'};
           }
           .travel-report h3 {
             margin-top: 0;
@@ -829,6 +860,17 @@ function initChatbot() {
           }
           .report-content {
             white-space: pre-wrap;
+          }
+          .original-report {
+            line-height: 1.5;
+          }
+          .original-report h4 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-weight: bold;
+          }
+          .original-report ul {
+            margin-bottom: 12px;
           }
           .report-actions {
             margin-top: 15px;
@@ -855,6 +897,10 @@ function initChatbot() {
             font-style: italic;
             color: #666;
             margin-top: 15px;
+          }
+          [dir="rtl"] ul {
+            padding-right: 20px;
+            padding-left: 0;
           }
         `;
         document.head.appendChild(style);
@@ -884,6 +930,9 @@ function initChatbot() {
     try {
       console.log("Generating PDF for report data:", reportData);
       
+      // Determine if content is RTL
+      const isRTL = reportData.language === 'ar';
+      
       // Create new PDF document with Unicode support
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({
@@ -905,7 +954,14 @@ function initChatbot() {
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       
-      // Format the report data for PDF
+      // For non-English reports, especially RTL languages like Arabic,
+      // we'll use a different approach to render the PDF
+      if (reportData.language !== 'en' && reportData.originalContent) {
+        // Use HTML rendering approach for non-Latin scripts
+        return generatePDFFromHTML(reportData, patientName);
+      }
+      
+      // Format the report data for PDF - this is for English/Latin scripts
       let yPos = 30;
       const lineHeight = 7;
       
@@ -1139,6 +1195,212 @@ function initChatbot() {
     } catch (error) {
       console.error('Error generating PDF:', error);
       displayBotMessage("I'm sorry, I couldn't generate the PDF. Please try again later.");
+    }
+  }
+  
+  /**
+   * Generate PDF for non-Latin scripts (like Arabic) using HTML-to-Canvas approach
+   * @param {Object} reportData - The report data
+   * @param {string} patientName - Patient name for the file
+   */
+  function generatePDFFromHTML(reportData, patientName) {
+    try {
+      // Create a temporary HTML element with the report content
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '794px'; // A4 width in pixels at 96 DPI
+      
+      // Determine if content is RTL
+      const isRTL = reportData.language === 'ar';
+      
+      // Format content into HTML
+      let htmlContent = '';
+      
+      if (reportData.originalContent) {
+        // Format the original content
+        const formattedContent = reportData.originalContent
+          .replace(/\n\s*#+\s*([^\n]+)/g, '<h2>$1</h2>')  // Convert headings
+          .replace(/\n\s*-\s+([^\n]+)/g, '<li>$1</li>')   // Convert list items
+          .replace(/\n\s*\*\s+([^\n]+)/g, '<li>$1</li>')  // Convert list items (star)
+          .replace(/\n\s*\d+\.\s+([^\n]+)/g, '<li>$1</li>') // Convert numbered list items
+          .replace(/\n\n/g, '</p><p>')                     // Convert paragraphs
+          .replace(/<li>/g, '<ul><li>')                    // Start lists
+          .replace(/<\/li>/g, '</li></ul>')                // End lists
+          .replace(/<\/ul><ul>/g, '')                      // Clean up adjacent lists
+          .replace(/\n/g, '<br>');                         // Convert single line breaks
+        
+        htmlContent = `
+          <div dir="${isRTL ? 'rtl' : 'ltr'}" style="font-family: Arial, sans-serif; text-align: ${isRTL ? 'right' : 'left'}; padding: 20px;">
+            <h1 style="color: #0033cc; text-align: center;">Medical Travel Report</h1>
+            <div style="line-height: 1.5; font-size: 12pt;">
+              ${formattedContent}
+            </div>
+            <p style="color: #666; font-style: italic; font-size: 9pt; margin-top: 20px;">
+              ${reportData.disclaimer || 'This report was generated by AI and should be reviewed by a healthcare professional.'}
+            </p>
+          </div>
+        `;
+      } else {
+        // Fallback to structured format
+        htmlContent = `
+          <div dir="${isRTL ? 'rtl' : 'ltr'}" style="font-family: Arial, sans-serif; text-align: ${isRTL ? 'right' : 'left'}; padding: 20px;">
+            <h1 style="color: #0033cc; text-align: center;">Medical Travel Report</h1>
+            
+            <h2>Patient Information</h2>
+            <p><strong>Name:</strong> ${reportData.patientInfo?.name || patientName}</p>
+            <p><strong>Age:</strong> ${reportData.patientInfo?.age || 'Not specified'}</p>
+            <p><strong>Gender:</strong> ${reportData.patientInfo?.gender || 'Not specified'}</p>
+            
+            <h2>Medical History</h2>
+            <ul>
+              ${Array.isArray(reportData.medicalHistory) ? 
+                reportData.medicalHistory.map(item => `<li>${item}</li>`).join('') : 
+                '<li>No medical history available</li>'}
+            </ul>
+            
+            <h2>Current Conditions</h2>
+            <ul>
+              ${Array.isArray(reportData.currentConditions) ? 
+                reportData.currentConditions.map(item => `<li>${item}</li>`).join('') : 
+                '<li>No current conditions listed</li>'}
+            </ul>
+            
+            <h2>Medications</h2>
+            <ul>
+              ${Array.isArray(reportData.medications) ? 
+                reportData.medications.map(item => `<li>${item}</li>`).join('') : 
+                '<li>No medications listed</li>'}
+            </ul>
+            
+            <h2>Allergies</h2>
+            <ul>
+              ${Array.isArray(reportData.allergies) ? 
+                reportData.allergies.map(item => `<li>${item}</li>`).join('') : 
+                '<li>No allergies listed</li>'}
+            </ul>
+            
+            <h2>Travel Recommendations</h2>
+            <ul>
+              ${Array.isArray(reportData.travelRecommendations) ? 
+                reportData.travelRecommendations.map(item => `<li>${item}</li>`).join('') : 
+                '<li>No travel recommendations available</li>'}
+            </ul>
+            
+            <h2>Medical Clearance</h2>
+            <p>${reportData.medicalClearance || 'No medical clearance information available'}</p>
+            
+            ${Object.keys(reportData.languageTranslation).length > 0 ? `
+              <h2>Translations</h2>
+              <ul>
+                ${Object.entries(reportData.languageTranslation).map(([phrase, translation]) => 
+                  `<li><strong>${phrase}:</strong> ${translation}</li>`).join('')}
+              </ul>
+            ` : ''}
+            
+            <p style="color: #666; font-style: italic; font-size: 9pt; margin-top: 20px;">
+              ${reportData.disclaimer || 'This report was generated by AI and should be reviewed by a healthcare professional.'}
+            </p>
+          </div>
+        `;
+      }
+      
+      tempContainer.innerHTML = htmlContent;
+      document.body.appendChild(tempContainer);
+      
+      // Use html2canvas to render the HTML to a canvas
+      window.html2canvas = html2canvas;
+      if (!window.html2canvas) {
+        // If html2canvas is not available, load it
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onload = function() {
+          // Once loaded, render the PDF
+          renderHTMLToPDF(tempContainer, patientName, reportData.language);
+        };
+        document.head.appendChild(script);
+      } else {
+        // If already loaded, render the PDF
+        renderHTMLToPDF(tempContainer, patientName, reportData.language);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error generating PDF from HTML:', error);
+      displayBotMessage("I'm sorry, I couldn't generate the PDF. Please try again later.");
+      return false;
+    }
+  }
+  
+  /**
+   * Render HTML to PDF using html2canvas
+   * @param {HTMLElement} element - The HTML element to render
+   * @param {string} patientName - Patient name for the file
+   * @param {string} language - Language code
+   */
+  function renderHTMLToPDF(element, patientName, language) {
+    const { jsPDF } = window.jspdf;
+    
+    try {
+      // Configure html2canvas options for proper rendering
+      const options = {
+        scale: 2, // Higher scale for better quality
+        useCORS: true,
+        logging: false,
+        letterRendering: true,
+        allowTaint: true
+      };
+      
+      // Render the HTML to canvas
+      html2canvas(element, options).then(canvas => {
+        // Create new PDF document
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+        
+        // Get canvas as image
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 295; // A4 height in mm
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        // Add first page
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // Add additional pages if needed
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+        
+        // Generate filename
+        const sanitizedName = (patientName || 'Patient').replace(/[^a-z0-9]/gi, '_');
+        const date = new Date().toISOString().split('T')[0];
+        const fileName = `Medical_Travel_Report_${sanitizedName}_${date}.pdf`;
+        
+        // Save the PDF
+        pdf.save(fileName);
+        
+        // Clean up
+        document.body.removeChild(element);
+        
+        displayBotMessage(`Your report has been downloaded as "${fileName}".`);
+      });
+    } catch (error) {
+      console.error('Error rendering HTML to PDF:', error);
+      displayBotMessage("I'm sorry, I couldn't generate the PDF. Please try again later.");
+      
+      // Clean up
+      if (element.parentNode) {
+        document.body.removeChild(element);
+      }
     }
   }
   
