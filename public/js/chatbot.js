@@ -228,7 +228,33 @@ function initChatbot() {
     displayUserMessage(`Language: ${languageName}`);
     
     if (window.selectedPatient) {
-      displayBotMessage(`Thank you! I'll generate a medical travel report in ${languageName} for ${window.selectedPatient.name}. This might take a moment...`);
+      // Extract flag emoji from button content if available
+      const languageButton = document.querySelector(`.chatbot-option[data-language="${languageCode}"]`);
+      const flagEmoji = languageButton ? languageButton.textContent.trim().split(' ')[0] : '';
+      
+      displayBotMessage(`${flagEmoji} Thank you! I'll generate a medical travel report in ${languageName} for ${window.selectedPatient.name}. This might take a moment...`);
+      
+      // Add clear message about language
+      if (languageCode !== 'en') {
+        displayBotMessage(`<div class="language-notice"><i class="fas fa-language"></i> The report will be written entirely in ${languageName}.</div>`);
+        
+        // Add CSS for language notice
+        const style = document.createElement('style');
+        style.textContent = `
+          .language-notice {
+            background-color: #f0f4ff;
+            border-left: 3px solid #4285f4;
+            padding: 8px 12px;
+            margin: 8px 0;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
       // Generate the report
       generateTravelReport(window.selectedPatientId, languageCode);
     } else {
@@ -858,9 +884,16 @@ function initChatbot() {
     try {
       console.log("Generating PDF for report data:", reportData);
       
-      // Create new PDF document
+      // Create new PDF document with Unicode support
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        putOnlyUsedFonts: true,
+        compress: true
+      });
+      
       const pageWidth = doc.internal.pageSize.getWidth();
       
       // Add title
@@ -868,12 +901,41 @@ function initChatbot() {
       doc.setTextColor(0, 51, 153);
       doc.text("Medical Travel Report", pageWidth / 2, 20, { align: 'center' });
       
+      // Set font for normal text
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       
       // Format the report data for PDF
       let yPos = 30;
       const lineHeight = 7;
+      
+      // Helper function to add text with Unicode support
+      const addText = (text, x, y) => {
+        try {
+          doc.text(text, x, y);
+        } catch (e) {
+          // If there's an encoding error, try adding text as an image
+          console.warn("Unicode text rendering issue:", e);
+          
+          // Create a canvas element to render the text
+          const canvas = document.createElement('canvas');
+          canvas.width = 500;
+          canvas.height = 30;
+          const ctx = canvas.getContext('2d');
+          ctx.font = '12px Arial';
+          ctx.fillStyle = 'black';
+          ctx.fillText(text, 5, 20);
+          
+          // Add the canvas as an image to the PDF
+          try {
+            doc.addImage(canvas.toDataURL(), 'PNG', x, y - 5, 80, 10);
+          } catch (imgErr) {
+            console.error("Failed to add text as image:", imgErr);
+            // Fallback to safe ASCII
+            doc.text("[Text contains unsupported characters]", x, y);
+          }
+        }
+      };
       
       // Add patient info
       if (reportData.patientInfo) {
@@ -882,16 +944,16 @@ function initChatbot() {
         doc.setFontSize(12);
         yPos += lineHeight;
         
-        doc.text(`Name: ${reportData.patientInfo.name || patientName}`, 20, yPos);
+        addText(`Name: ${reportData.patientInfo.name || patientName}`, 20, yPos);
         yPos += lineHeight;
         
         if (reportData.patientInfo.age) {
-          doc.text(`Age: ${reportData.patientInfo.age}`, 20, yPos);
+          addText(`Age: ${reportData.patientInfo.age}`, 20, yPos);
           yPos += lineHeight;
         }
         
         if (reportData.patientInfo.gender) {
-          doc.text(`Gender: ${reportData.patientInfo.gender}`, 20, yPos);
+          addText(`Gender: ${reportData.patientInfo.gender}`, 20, yPos);
           yPos += lineHeight;
         }
         
@@ -908,7 +970,7 @@ function initChatbot() {
         reportData.medicalHistory.forEach(item => {
           const lines = doc.splitTextToSize(`• ${item}`, pageWidth - 40);
           lines.forEach(line => {
-            doc.text(line, 20, yPos);
+            addText(line, 20, yPos);
             yPos += lineHeight;
           });
         });
@@ -926,7 +988,7 @@ function initChatbot() {
         reportData.currentConditions.forEach(item => {
           const lines = doc.splitTextToSize(`• ${item}`, pageWidth - 40);
           lines.forEach(line => {
-            doc.text(line, 20, yPos);
+            addText(line, 20, yPos);
             yPos += lineHeight;
           });
         });
@@ -950,7 +1012,7 @@ function initChatbot() {
         reportData.medications.forEach(item => {
           const lines = doc.splitTextToSize(`• ${item}`, pageWidth - 40);
           lines.forEach(line => {
-            doc.text(line, 20, yPos);
+            addText(line, 20, yPos);
             yPos += lineHeight;
           });
         });
@@ -968,7 +1030,7 @@ function initChatbot() {
         reportData.allergies.forEach(item => {
           const lines = doc.splitTextToSize(`• ${item}`, pageWidth - 40);
           lines.forEach(line => {
-            doc.text(line, 20, yPos);
+            addText(line, 20, yPos);
             yPos += lineHeight;
           });
         });
@@ -992,7 +1054,7 @@ function initChatbot() {
         reportData.travelRecommendations.forEach(item => {
           const lines = doc.splitTextToSize(`• ${item}`, pageWidth - 40);
           lines.forEach(line => {
-            doc.text(line, 20, yPos);
+            addText(line, 20, yPos);
             yPos += lineHeight;
           });
         });
@@ -1015,8 +1077,33 @@ function initChatbot() {
         
         const lines = doc.splitTextToSize(reportData.medicalClearance, pageWidth - 40);
         lines.forEach(line => {
-          doc.text(line, 20, yPos);
+          addText(line, 20, yPos);
           yPos += lineHeight;
+        });
+        
+        yPos += lineHeight;
+      }
+      
+      // Add language translations if available
+      if (Object.keys(reportData.languageTranslation).length > 0) {
+        // Check if we need a new page
+        if (yPos > 250) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.text("Language Translations", 20, yPos);
+        doc.setFontSize(12);
+        yPos += lineHeight;
+        
+        Object.entries(reportData.languageTranslation).forEach(([phrase, translation]) => {
+          const phraseLine = `${phrase}: ${translation}`;
+          const lines = doc.splitTextToSize(phraseLine, pageWidth - 40);
+          lines.forEach(line => {
+            addText(line, 20, yPos);
+            yPos += lineHeight;
+          });
         });
         
         yPos += lineHeight;
@@ -1035,7 +1122,7 @@ function initChatbot() {
         
         const lines = doc.splitTextToSize(reportData.disclaimer, pageWidth - 40);
         lines.forEach(line => {
-          doc.text(line, 20, yPos);
+          addText(line, 20, yPos);
           yPos += 5;
         });
       }

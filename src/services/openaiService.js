@@ -15,9 +15,27 @@ const openai = new OpenAI({
  */
 const generateTravelReport = async (patient, language) => {
   try {
-    // Build system prompt for medical travel report generation
-    const systemPrompt = `You are a medical professional tasked with creating a medical travel report for a patient. 
-Generate a comprehensive medical travel report with the following sections:
+    // Language mapping for proper names
+    const languageNames = {
+      'en': 'English',
+      'es': 'Spanish',
+      'fr': 'French',
+      'de': 'German',
+      'it': 'Italian',
+      'zh': 'Chinese',
+      'ar': 'Arabic',
+      'hi': 'Hindi',
+      'pt': 'Portuguese',
+      'ru': 'Russian'
+    };
+    
+    const languageName = languageNames[language] || language;
+    
+    // Build system prompt for medical travel report generation with language instructions
+    const systemPrompt = `You are a medical professional tasked with creating a medical travel report for a patient.
+Generate a comprehensive medical travel report ENTIRELY IN ${languageName} if the language is not English.
+
+The report should include the following sections:
 1. Patient Information (use the provided patient data)
 2. Medical History (based on the patient's history)
 3. Current Conditions
@@ -25,7 +43,8 @@ Generate a comprehensive medical travel report with the following sections:
 5. Allergies
 6. Travel Recommendations (based on medical conditions)
 7. Medical Clearance statement
-8. Key phrases in ${language} that might be useful during travel
+
+If the selected language is NOT English, also include an "English Translations" section at the end with key medical phrases translated to English.
 
 The report should be professional, accurate, and tailored to the patient's conditions.`;
 
@@ -36,7 +55,8 @@ Age: ${patient.age}
 Gender: ${patient.gender}
 Medical History: ${patient.medicalHistory.join(', ')}
 
-The report should include appropriate travel recommendations and important phrases translated to ${language}.`;
+IMPORTANT: The entire report should be written in ${languageName}${language !== 'en' ? ', NOT in English' : ''}.
+Only use English for the optional "English Translations" section if the report is in another language.`;
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
