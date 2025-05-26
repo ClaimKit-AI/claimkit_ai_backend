@@ -6,7 +6,10 @@
     <title>ClaimKit Voice Companion | Doctor Notes AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chatbot.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <!-- Tutorial Overlay -->
@@ -674,5 +677,15 @@
     <script src="js/emr-functions.js"></script>
     <script src="js/claimkit-api.js"></script>
     <script src="js/claimkit-integration.js"></script>
+    
+    <!-- Floating Chatbot for Travel Reports -->
+    <div id="travelReportChatbot" class="chatbot-container">
+        <button id="chatbotToggle" class="chatbot-toggle">
+            <i class="fas fa-plane-departure"></i>
+            <span class="chatbot-notification" style="display: none;">1</span>
+        </button>
+    </div>
+    
+    <script src="js/chatbot.js"></script>
 </body>
 </html> 

@@ -1,9 +1,10 @@
 # Dependency directories
 node_modules/
 npm-debug.log
-yarn-debug.log
 yarn-error.log
-package-lock.json
+yarn-debug.log
+.pnp/
+.pnp.js
 
 # Environment variables
 .env
@@ -11,6 +12,31 @@ package-lock.json
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Firebase credentials
+*firebase-adminsdk*.json
+firebase-credentials.json
+marine-storm-434008-h2-firebase-adminsdk-22umi-428845b76c.json
+
+# Build files
+dist/
+build/
+*.bundle.js
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
 
 # Logs
 logs
@@ -30,19 +56,6 @@ coverage
 
 # nyc test coverage
 .nyc_output
-
-# Build artifacts
-dist/
-build/
-
-# Mac OS
-.DS_Store
-
-# IDE files
-.idea/
-.vscode/
-*.swp
-*.swo
 
 # Temp files
 tmp/

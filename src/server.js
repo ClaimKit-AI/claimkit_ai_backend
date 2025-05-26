@@ -16,11 +16,17 @@ const logger = require('./utils/logger');
 const { handleError } = require('./utils/errorHandler');
 const rateLimiter = require('./middleware/rateLimiter');
 
+// Initialize Firebase
+const { db } = require('./config/firebase');
+const firestoreService = require('./services/firestoreService');
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const templateRoutes = require('./routes/templateRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const claimkitRoutes = require('./routes/claimkitRoutes');
+const travelReportRoutes = require('./routes/travelReportRoutes');
+const firebaseRoutes = require('./routes/firebaseRoutes');
 
 // Create logs directory if it doesn't exist
 const logsDir = path.join(__dirname, '../logs');
@@ -87,6 +93,8 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/templates', templateRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/claimkit', claimkitRoutes);
+app.use('/api/v1/travel-report', travelReportRoutes);
+app.use('/api/v1/firebase', firebaseRoutes);
 
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {
@@ -142,6 +150,11 @@ const server = app.listen(PORT, () => {
   
   // Seed templates
   seedTemplates();
+  
+  // Initialize Firestore data
+  firestoreService.seedInitialData()
+    .then(() => logger.info('Firestore data initialized successfully'))
+    .catch(err => logger.error(`Error initializing Firestore data: ${err.message}`));
 });
 
 // Handle unhandled promise rejections

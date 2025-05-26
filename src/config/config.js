@@ -28,6 +28,11 @@ const config = {
   db: {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/claimkit_ai',
   },
+  firebase: {
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
+    serviceAccount: process.env.FIREBASE_SERVICE_ACCOUNT
+  },
   jwt: {
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN || '1d',
